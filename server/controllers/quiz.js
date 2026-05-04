@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 const Quiz = require('../models/Quiz');
 
@@ -9,33 +10,47 @@ const sanitizeQuestions = (questions = []) =>
 		options: Array.isArray(options) ? options : [],
 	}));
 
-const calculateQuizResult = (questions, answers) => {
+const calculateQuizResult = (questions, answers, passingScore = 80) => {
 	const total = questions.length;
+	let correctCount = 0;
+	const wrongAnswers = [];
 
-	const score = questions.reduce((runningScore, question, index) => {
+	questions.forEach((question, index) => {
 		const submittedAnswer = answers[index];
+		const options = Array.isArray(question.options) ? question.options : [];
+		const hasValidSubmittedAnswer =
+			Number.isInteger(submittedAnswer) &&
+			submittedAnswer >= 0 &&
+			submittedAnswer < options.length;
+		const hasValidCorrectAnswer =
+			Number.isInteger(question.correctAnswer) &&
+			question.correctAnswer >= 0 &&
+			question.correctAnswer < options.length;
+		const selectedAnswer = hasValidSubmittedAnswer ? String(options[submittedAnswer]) : null;
+		const correctAnswer = hasValidCorrectAnswer ? String(options[question.correctAnswer]) : '';
 
-		if (!Number.isInteger(submittedAnswer)) {
-			return runningScore;
+		if (hasValidSubmittedAnswer && submittedAnswer === question.correctAnswer) {
+			correctCount += 1;
+			return;
 		}
 
-		if (
-			!Array.isArray(question.options) ||
-			submittedAnswer < 0 ||
-			submittedAnswer >= question.options.length
-		) {
-			return runningScore;
-		}
+		wrongAnswers.push({
+			questionId: question._id ? question._id.toString() : null,
+			questionText: question.question,
+			selectedAnswer,
+			correctAnswer,
+			courseSection: question.courseSection ?? null,
+		});
+	});
 
-		return submittedAnswer === question.correctAnswer ? runningScore + 1 : runningScore;
-	}, 0);
-
-	const percentage = total === 0 ? 0 : Number(((score / total) * 100).toFixed(2));
+	const percentage = total === 0 ? 0 : Number(((correctCount / total) * 100).toFixed(2));
 
 	return {
-		score,
+		score: correctCount,
 		total,
 		percentage,
+		passed: percentage >= passingScore,
+		wrongAnswers,
 	};
 };
 
@@ -128,7 +143,7 @@ const submitQuiz = async (req, res, next) => {
 		const { courseId, answers } = payloadValidation;
 
 		const quiz = await Quiz.findOne({ courseId })
-			.select('_id courseId questions.correctAnswer questions.options')
+			.select('_id courseId passingScore questions')
 			.lean();
 
 		if (!quiz) {
@@ -143,7 +158,7 @@ const submitQuiz = async (req, res, next) => {
 				.json({ message: `answers length must match total questions (${questions.length}).` });
 		}
 
-		const result = calculateQuizResult(questions, answers);
+		const result = calculateQuizResult(questions, answers, quiz.passingScore ?? 80);
 
 		// Makes attempt metadata available to downstream middleware for persistence/progress tracking.
 		res.locals.quizAttempt = buildAttemptContext({

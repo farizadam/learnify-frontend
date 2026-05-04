@@ -41,8 +41,13 @@ const quizQuestionSchema = new mongoose.Schema(
 				message: 'Correct answer must be a valid option index.',
 			},
 		},
+		courseSection: {
+			type: String,
+			trim: true,
+			default: null,
+		},
 	},
-	{ _id: false }
+	{}
 );
 
 const quizSchema = new mongoose.Schema(
@@ -66,6 +71,12 @@ const quizSchema = new mongoose.Schema(
 				validator: (questions) => Array.isArray(questions) && questions.length > 0,
 				message: 'Quiz must include at least one question.',
 			},
+		},
+		passingScore: {
+			type: Number,
+			default: 80,
+			min: [0, 'Passing score cannot be below 0.'],
+			max: [100, 'Passing score cannot be above 100.'],
 		},
 	},
 	{
