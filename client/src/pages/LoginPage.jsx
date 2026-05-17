@@ -10,46 +10,62 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
   const { login, signup } = useAuth();
+  const [teacherCode, setTeacherCode] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setEmailError("");
 
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
+  // Accepter uniquement ces domaines
+  const allowedDomains = ["gmail.com", "learnify.com", "email.com", "hotmail.com"];
+  const emailRegex = /^[a-zA-Z0-9._%+\-]+@(.+)$/;
+  const match = email.match(emailRegex);
+  const domain = match ? match[1].toLowerCase() : "";
+  if (!match || !allowedDomains.includes(domain)) {
+    setEmailError("Invalid Format — utilisez : @gmail.com, @learnify.com, @hotmail.com ou @email.com");
+    return;
+  }
 
-    if (!isLogin && !fullName) {
-      setError('Please enter your full name');
-      return;
-    }
+  try {
+    if (isLogin) {
+      // 🔵 LOGIN
+     const userData = await login(email, password);
+    if (userData.role === "teacher") navigate("/teacher-dashboard");
+    else navigate("/");
 
-    try {
-      if (isLogin) {
-        login(email, password, role);
-      } else {
-        signup(email, password, fullName, role);
-      }
-      navigate('/');
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    }
-  };
+    } else {
+  //  SIGNUP
+
+  const nameParts = fullName.split(" ");
+  const firstName = nameParts[0];
+  const lastName = nameParts.slice(1).join(" ") || "";
+
+  await signup(email, password, fullName, role, teacherCode);
+
+  setIsLogin(true);
+  setError("Account created! You can login now ✅");
+}
+
+  } catch (err) {
+    setError(err.message);
+  }
+};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-900 dark:to-purple-900 flex items-center justify-center py-12 px-4">
+    <div className="flex items-center justify-center min-h-screen px-4 py-12 bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-900 dark:to-purple-900">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">Learnify</h1>
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-5xl font-bold text-white">Learnify</h1>
           <p className="text-blue-100">Learn Anything, Become Anything</p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8">
+        <div className="p-8 bg-white rounded-lg shadow-2xl dark:bg-gray-800">
           {/* Tab Selector */}
           <div className="flex gap-4 mb-8">
             <button
@@ -79,59 +95,82 @@ export default function LoginPage() {
             {/* Full Name (Sign Up Only) */}
             {!isLogin && (
               <div>
-                <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
+                <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User size={20} className="absolute left-3 top-3 text-gray-400" />
+                  <User size={20} className="absolute text-gray-400 left-3 top-3" />
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Your full name"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
             )}
+            
+            {!isLogin && role === 'teacher' && (
+            <div>
+              <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
+                Code professeur
+              </label>
+             <div className="relative">
+               <Lock size={20} className="absolute text-gray-400 left-3 top-3" />
+               <input
+                 type="password"
+                 value={teacherCode}
+                 onChange={(e) => setTeacherCode(e.target.value)}
+                 placeholder="Code secret prof"
+                 className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+               />
+             </div>
+           </div> 
+           )}
 
             {/* Email */}
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
+              <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
                 Email Address
               </label>
               <div className="relative">
-                <Mail size={20} className="absolute left-3 top-3 text-gray-400" />
+                <Mail size={20} className="absolute text-gray-400 left-3 top-3" />
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {emailError && (
+                <p className="mt-1.5 text-sm text-red-500 flex items-center gap-1">
+                  ⚠️ {emailError}
+                </p>
+              )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-bold mb-2">
+              <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
                 Password
               </label>
               <div className="relative">
-                <Lock size={20} className="absolute left-3 top-3 text-gray-400" />
+                <Lock size={20} className="absolute text-gray-400 left-3 top-3" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             {/* Role Selection */}
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-bold mb-3">
+              <label className="block mb-3 font-bold text-gray-700 dark:text-gray-300">
                 I am a...
               </label>
               <div className="flex gap-4">
@@ -162,7 +201,7 @@ export default function LoginPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-800 dark:text-red-200 px-4 py-3 rounded">
+              <div className="px-4 py-3 text-red-800 bg-red-100 border border-red-400 rounded dark:bg-red-900 dark:border-red-700 dark:text-red-200">
                 {error}
               </div>
             )}
@@ -170,24 +209,17 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 mt-6"
+              className="flex items-center justify-center w-full gap-2 py-3 mt-6 font-bold text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
             >
               {isLogin ? 'Login' : 'Create Account'}
               <ArrowRight size={20} />
             </button>
 
-            {/* Demo Credentials */}
-            {isLogin && (
-              <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4 text-sm text-gray-700 dark:text-blue-200">
-                <p className="font-bold mb-2">Demo Credentials:</p>
-                <p>Email: demo@learnify.com</p>
-                <p>Password: demo123</p>
-              </div>
-            )}
+
           </form>
 
           {/* Footer */}
-          <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
+          <p className="mt-6 text-sm text-center text-gray-600 dark:text-gray-400">
             By signing in, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>

@@ -17,20 +17,19 @@ const getUserInfo = async (req, res) => {
 
 const updateUserInfo = async (req, res) => {
     try {
-        const { name, email } = req.body;
+        const { firstName, lastName, email } = req.body;
         const user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if(req.user.id !== user.id) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
+        if (firstName !== undefined) user.firstName = firstName;
+        if (lastName  !== undefined) user.lastName  = lastName;
+        if (email     !== undefined) user.email      = email;
 
-        user.name = name || user.name;
-        user.email = email || user.email;
         await user.save();
-        res.json(user);
+        const updatedUser = await User.findById(req.user.id).select('-password');
+        res.json(updatedUser);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -68,7 +67,8 @@ const enrollCourse = async (req, res) => {
             return res.status(404).json({ message: 'User or course not found' });
         }
       
-        if (user.enrolledCourses.includes(courseId)) {
+        if (user.enrolledCourses.includes(courseId) || 
+            course.studentsEnrolled.some(s => s.toString() === user._id.toString())) {
             return res.status(400).json({ message: 'Already enrolled in this course' });
         }
 

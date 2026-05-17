@@ -1,12 +1,27 @@
-    const mongoose = require('mongoose');
+const mongoose = require('mongoose');
     const bcrypt = require('bcryptjs');
     const User = require('../models/User'); // Ensure this matches your file structure
     const jwt = require('jsonwebtoken');
     // --- CONTROLLERS ---
     const register = async (req, res) => {
         try {
-            const { firstName, lastName, email, password, role, bio } = req.body;
+            const { firstName, lastName, email, password, role, bio , teacherCode } = req.body;
+             
+            //  Vérifier format email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+             return res.status(400).json({ message: "Email invalide" });
+            }
 
+            //  Vérifier mot de passe minimum
+            if (!password || password.length < 6) {
+              return res.status(400).json({ message: "Mot de passe trop court (min. 6 caractères)" });
+            }
+
+            //  Vérifier role valide
+            if (!["student", "teacher"].includes(role)) {
+               return res.status(400).json({ message: "Rôle invalide" });
+            }
             // Check if user exists
             const existingUser = await User.findOne({ email });
             if (existingUser) {
@@ -15,7 +30,15 @@
 
             // Hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
+             
 
+            const TEACHER_SECRET = process.env.TEACHER_SECRET;
+
+              if (role === "teacher") {
+              if (!teacherCode || teacherCode !== TEACHER_SECRET) {
+              return res.status(403).json({ message: "Code prof invalide" });
+                 }
+                }
             // Create a new user (Note: naming must match your User Schema exactly)
             const newUser = new User({
                 firstName, // Use camelCase to stay consistent
@@ -60,21 +83,25 @@
                     lastName: user.lastName 
                 }, 
                 process.env.JWT_SECRET, 
-                { expiresIn: '1h' }
+                { expiresIn: '7d' }
             );
 
-            res.status(200).json({ token });
+            res.status(200).json({ token, user: {
+                     id: user._id,
+                    role: user.role,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                 }}); 
         } catch (error) {
             res.status(500).json({ message: "Something went wrong during login" });
         }
     };
 
     const logout = async (req, res) => {
-        // Since JWT is stateless, we can't truly "log out" on the server side without implementing token blacklisting.
-        // For now, the frontend can simply delete the token to "log out".
         res.status(200).json({ message: "Logged out successfully (frontend should delete the token)" });
     };
-const refreshToken = async (req, res) => {
+    const refreshToken = async (req, res) => {
     try {
         const { token } = req.body;
         if (!token) return res.status(400).json({ message: "No token provided" });
@@ -83,32 +110,31 @@ const refreshToken = async (req, res) => {
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET);
         } catch (err) {
-            if (err.name === 'TokenExpiredError') {
-                decoded = jwt.decode(token); 
-            } else {
-                return res.status(401).json({ message: "Invalid token" });
-            }
+            // Token invalide ou expiré → refuser
+            return res.status(401).json({ message: "Token invalide ou expiré" });
         }
 
-        // Check if the decoded payload actually has data
         if (!decoded) return res.status(401).json({ message: "Could not decode token" });
+
+        // Vérifier que l'user existe encore en DB
+        const user = await User.findById(decoded.id).select('-password');
+        if (!user) return res.status(401).json({ message: "Utilisateur introuvable" });
 
         const newToken = jwt.sign(
             {
-                // Use BOTH OR check which one exists to be safe
-                id: decoded.id || decoded._id, 
-                role: decoded.role,
-                email: decoded.email,
-                firstName: decoded.firstName,
-                lastName: decoded.lastName
+                id: user._id,
+                role: user.role,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName
             },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '7d' }
         );
 
         res.status(200).json({ token: newToken });
     } catch (error) {
         res.status(500).json({ message: "Server error during refresh" });
     }
-};
+   };
 module.exports = {register, login, logout, refreshToken };

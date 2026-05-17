@@ -1,6 +1,6 @@
-
 const mongoose = require('mongoose');
 const Quiz = require('../models/Quiz');
+const Course = require('../models/Course');
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
@@ -160,7 +160,14 @@ const submitQuiz = async (req, res, next) => {
 
 		const result = calculateQuizResult(questions, answers, quiz.passingScore ?? 80);
 
-		// Makes attempt metadata available to downstream middleware for persistence/progress tracking.
+		// Si passed, ajouter l'user dans studentsPassed du course
+		if (result.passed) {
+			const userId = req.user?._id || req.user?.id;
+			await Course.findByIdAndUpdate(courseId, {
+				$addToSet: { studentsPassed: userId },
+			});
+		}
+
 		res.locals.quizAttempt = buildAttemptContext({
 			req,
 			quiz,
@@ -168,7 +175,7 @@ const submitQuiz = async (req, res, next) => {
 			result,
 		});
 
-		return res.status(200).json(result);
+		return res.status(200).json({ ...result, courseId });
 	} catch (error) {
 		if (typeof next === 'function') {
 			return next(error);
@@ -178,7 +185,51 @@ const submitQuiz = async (req, res, next) => {
 	}
 };
 
+const createQuiz = async (req, res) => {
+	try {
+		if (req.user.role !== 'teacher') {
+			return res.status(403).json({ message: 'Only teachers can create quizzes.' });
+		}
+
+		const { courseId, title, questions, passingScore } = req.body;
+
+		if (!courseId || !isValidObjectId(courseId)) {
+			return res.status(400).json({ message: 'A valid courseId is required.' });
+		}
+		if (!title || !title.trim()) {
+			return res.status(400).json({ message: 'Quiz title is required.' });
+		}
+		if (!Array.isArray(questions) || questions.length === 0) {
+			return res.status(400).json({ message: 'At least one question is required.' });
+		}
+
+		// Vérifier que le teacher possède ce cours
+		const course = await Course.findById(courseId);
+		if (!course) return res.status(404).json({ message: 'Course not found.' });
+		if (course.instructor.toString() !== req.user.id) {
+			return res.status(403).json({ message: 'You can only create quizzes for your own courses.' });
+		}
+
+		// Supprimer ancien quiz si existe
+		await Quiz.deleteOne({ courseId });
+
+		const quiz = new Quiz({
+			courseId,
+			title: title.trim(),
+			questions,
+			passingScore: passingScore ?? 80,
+		});
+
+		await quiz.save();
+		return res.status(201).json({ message: 'Quiz created successfully.', quiz });
+	} catch (error) {
+		return res.status(500).json({ message: error.message || 'Internal server error.' });
+	}
+};
+
+
 module.exports = {
 	getQuizByCourse,
 	submitQuiz,
+	createQuiz,
 };

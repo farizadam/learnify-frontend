@@ -1,7 +1,2 @@
-import { useAuthContext } from '../context/AuthContext'
-
-function useAuth() {
-  return useAuthContext()
-}
-
-export default useAuth
+import { useAuth } from '../contexts/AuthContext';
+export default useAuth;

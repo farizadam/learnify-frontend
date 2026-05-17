@@ -1,29 +1,31 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export async function login(payload) {
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    throw new Error('Unable to login')
+    const data = await response.json();
+    throw new Error(data.message || "Login failed");
   }
 
-  return response.json()
+  return response.json();
 }
 
 export async function signup(payload) {
-  const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-  })
+  });
 
   if (!response.ok) {
-    throw new Error('Unable to signup')
+    const data = await response.json();
+    throw new Error(data.message || "Signup failed");
   }
 
-  return response.json()
+  return response.json();
 }

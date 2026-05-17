@@ -15,19 +15,24 @@ import TeacherDashboardPage from './pages/TeacherDashboardPage';
 import './App.css';
 
 // Protected Route Component
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, role }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
       </div>
     );
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // check role
+  if (role && user.role !== role) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -46,8 +51,8 @@ function AppRoutes() {
           <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
           <Route path="/course/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
           <Route path="/course/:id/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/teacher-dashboard" element={<ProtectedRoute><TeacherDashboardPage /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute role="student"><DashboardPage /></ProtectedRoute>} />
+          <Route path="/teacher-dashboard" element={<ProtectedRoute role="teacher"><TeacherDashboardPage /></ProtectedRoute>} />
           <Route path="/certificates" element={<ProtectedRoute><CertificatePage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         </Routes>

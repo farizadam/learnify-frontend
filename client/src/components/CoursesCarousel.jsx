@@ -15,28 +15,28 @@ export default function CoursesCarousel({ courses }) {
 
   return (
     <div className="relative py-6">
-      <div className="flex gap-6 overflow-x-auto pb-4 hide-scrollbar" id="courses-carousel">
+      <div className="flex gap-6 pb-4 overflow-x-auto hide-scrollbar" id="courses-carousel">
         {courses.map(course => (
-          <div key={course.id} className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3">
+          <div key={course._id || course.id} className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3">
             <CourseCard course={course} />
           </div>
         ))}
       </div>
-      
+
       <button
         onClick={() => scroll('left')}
-        className="absolute left-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:shadow-xl transition hidden md:block"
+        className="absolute left-0 hidden p-2 transition -translate-y-1/2 bg-white rounded-full shadow-lg top-1/2 dark:bg-gray-800 hover:shadow-xl md:block"
       >
         <ChevronLeft size={24} className="text-gray-700 dark:text-gray-300" />
       </button>
-      
+
       <button
         onClick={() => scroll('right')}
-        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:shadow-xl transition hidden md:block"
+        className="absolute right-0 hidden p-2 transition -translate-y-1/2 bg-white rounded-full shadow-lg top-1/2 dark:bg-gray-800 hover:shadow-xl md:block"
       >
         <ChevronRight size={24} className="text-gray-700 dark:text-gray-300" />
       </button>
-      
+
       <style>{`
         .hide-scrollbar {
           -ms-overflow-style: none;
