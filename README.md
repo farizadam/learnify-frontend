@@ -28,6 +28,7 @@ A robust MERN stack application for online learning, featuring dedicated dashboa
    PORT=3000
    MONGO_URI=your_mongodb_uri
    JWT_SECRET=your_secret_key
+   TEACHER_SECRET = your_teacher_secret_here
    ```
    
    Start the server:
