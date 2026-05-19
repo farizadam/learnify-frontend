@@ -8,13 +8,15 @@ export default function LoginPage() {
   const [role, setRole] = useState('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
   const { login, signup } = useAuth();
   const [teacherCode, setTeacherCode] = useState('');
-
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 const handleSubmit = async (e) => {
   e.preventDefault();
   setError("");
@@ -40,14 +42,10 @@ const handleSubmit = async (e) => {
     } else {
   //  SIGNUP
 
-  const nameParts = fullName.split(" ");
-  const firstName = nameParts[0];
-  const lastName = nameParts.slice(1).join(" ") || "";
-
-  await signup(email, password, fullName, role, teacherCode);
+  await signup(email, password, firstName, lastName, role, teacherCode);
 
   setIsLogin(true);
-  setError("Account created! You can login now ✅");
+  setSuccess("Account created! You can login now ✅");
 }
 
   } catch (err) {
@@ -94,21 +92,41 @@ const handleSubmit = async (e) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name (Sign Up Only) */}
             {!isLogin && (
-              <div>
-                <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <User size={20} className="absolute text-gray-400 left-3 top-3" />
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Your full name"
-                    className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
+                    First Name
+                  </label>
+                  <div className="relative">
+                    <User size={20} className="absolute text-gray-400 left-3 top-3" />
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="First name"
+                      className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block mb-2 font-bold text-gray-700 dark:text-gray-300">
+                    Last Name
+                  </label>
+                  <div className="relative">
+                    <User size={20} className="absolute text-gray-400 left-3 top-3" />
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Last name"
+                      className="w-full py-3 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
+
+              
             )}
             
             {!isLogin && role === 'teacher' && (
@@ -203,6 +221,14 @@ const handleSubmit = async (e) => {
             {error && (
               <div className="px-4 py-3 text-red-800 bg-red-100 border border-red-400 rounded dark:bg-red-900 dark:border-red-700 dark:text-red-200">
                 {error}
+              </div>
+            )}
+
+              {/* Success Message */}
+
+              {success && (
+              <div className="px-4 py-3 text-green-800 bg-green-100 border border-green-400 rounded dark:bg-green-900 dark:border-green-700 dark:text-green-200">
+                {success}
               </div>
             )}
 

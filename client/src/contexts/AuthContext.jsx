@@ -37,17 +37,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   // SIGNUP
-  const signup = async (email, password, fullName, role, teacherCode = "") => {
-  const names = fullName.trim().split(" ");
-  return signupApi({
-    firstName: names[0] || "",
-    lastName: names.slice(1).join(" ") || "",
-    email,
-    password,
-    role,
-    teacherCode,   // ← envoyé au back
-  });
-};
+    const signup = async (email, password, firstName = "", lastName = "", role, teacherCode = "") => {
+    return signupApi({
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+      teacherCode,   // ← envoyé au back
+    });
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
