@@ -36,6 +36,7 @@ const mongoose = require('mongoose');
 
               if (role === "teacher") {
               if (!teacherCode || teacherCode !== TEACHER_SECRET) {
+                console.log("Invalid teacher code provided:", teacherCode, "Expected:", TEACHER_SECRET);
               return res.status(403).json({ message: "Code prof invalide" });
                  }
                 }
