@@ -1,65 +1,100 @@
-import { BookOpen, Clock, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowUpRight, BookOpen, Clock, Sparkles, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Button from './common/Button';
 
 export default function HeroSection() {
   const { user } = useAuth();
 
   return (
-    <div className="py-20 text-white bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-900 dark:to-purple-900">
-      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="grid items-center grid-cols-1 gap-12 md:grid-cols-2">
-          <div>
-            <h1 className="mb-6 text-5xl font-bold leading-tight md:text-6xl">
-              Learn Anything, Become Anything
-            </h1>
-            <p className="mb-8 text-xl text-blue-100">
-              Join millions of learners and unlock your potential with our world-class courses from industry experts.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                to="/courses"
-                className="px-8 py-3 font-bold text-blue-600 transition bg-white rounded-lg hover:bg-gray-100"
-              >
-                Start Learning Today
-              </Link>
-              {user?.role === 'teacher' ? (
-                <Link
-                  to="/teacher-dashboard"
-                  className="px-8 py-3 font-bold text-white transition border rounded-lg bg-white/20 hover:bg-white/30 border-white/40"
-                >
-                  My Dashboard
-                </Link>
-              ) : (
-                <Link
-                  to="/dashboard"
-                  className="px-8 py-3 font-bold text-white transition border rounded-lg bg-white/20 hover:bg-white/30 border-white/40"
-                >
-                  My Progress
-                </Link>
-              )}
-            </div>
-          </div>
+    <section className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900" />
+      <div className="absolute -left-24 top-12 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl" />
+      <div className="absolute -right-24 top-24 h-72 w-72 rounded-full bg-pink-500/20 blur-3xl" />
+      <div className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-emerald-400/10 blur-3xl" />
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="p-6 transition border rounded-lg bg-white/20 backdrop-blur-lg hover:bg-white/30 border-white/30">
-              <BookOpen size={40} className="mb-4 text-white" />
-              <h3 className="mb-2 text-xl font-bold text-white">Expert Instructors</h3>
-              <p className="text-blue-100">Learn from industry professionals</p>
+      <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
+            <span className="badge mb-6 inline-flex items-center gap-2 bg-white/10 text-white">
+              <Sparkles size={14} /> Premium learning reimagined
+            </span>
+            <h1 className="text-5xl font-semibold leading-tight text-white md:text-6xl">
+              Learn with the clarity of a modern product studio.
+            </h1>
+            <p className="mt-6 text-lg text-slate-200">
+              Learnify blends elegant course experiences, progress intelligence, and instructor workflows in one
+              premium platform.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link to="/courses">
+                <Button size="lg">
+                  Explore Courses <ArrowUpRight size={18} />
+                </Button>
+              </Link>
+              <Link to={user?.role === 'teacher' ? '/teacher-dashboard' : '/dashboard'}>
+                <Button size="lg" variant="secondary">
+                  {user?.role === 'teacher' ? 'Open Studio' : 'View Progress'}
+                </Button>
+              </Link>
             </div>
-            <div className="p-6 transition border rounded-lg bg-white/20 backdrop-blur-lg hover:bg-white/30 border-white/30">
-              <Clock size={40} className="mb-4 text-white" />
-              <h3 className="mb-2 text-xl font-bold text-white">Learn at Your Pace</h3>
-              <p className="text-blue-100">Complete courses whenever you want</p>
+            <div className="mt-10 flex flex-wrap gap-6 text-sm text-slate-300">
+              <div>
+                <p className="text-2xl font-semibold text-white">320+</p>
+                <p>Premium courses</p>
+              </div>
+              <div>
+                <p className="text-2xl font-semibold text-white">48k</p>
+                <p>Active learners</p>
+              </div>
+              <div>
+                <p className="text-2xl font-semibold text-white">4.9/5</p>
+                <p>Average satisfaction</p>
+              </div>
             </div>
-            <div className="p-6 transition border rounded-lg bg-white/20 backdrop-blur-lg hover:bg-white/30 border-white/30 md:col-span-2">
-              <User size={40} className="mb-4 text-white" />
-              <h3 className="mb-2 text-xl font-bold text-white">Lifetime Access</h3>
-              <p className="text-blue-100">Get lifetime access to all course materials</p>
-            </div>
-          </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
+            className="grid gap-5 sm:grid-cols-2"
+          >
+            {[
+              {
+                icon: BookOpen,
+                title: 'Expert-led paths',
+                text: 'Curated tracks built with industry leaders.',
+              },
+              {
+                icon: Clock,
+                title: 'Pace that fits',
+                text: 'Adaptive schedules and bite-sized lessons.',
+              },
+              {
+                icon: User,
+                title: 'Mentor feedback',
+                text: 'Dedicated review loops and live sessions.',
+                span: 'sm:col-span-2',
+              },
+            ].map(({ icon: Icon, title, text, span }) => (
+              <div
+                key={title}
+                className={`glass rounded-3xl border border-white/20 p-6 text-white ${span || ''}`}
+              >
+                <Icon size={28} className="text-sky-200" />
+                <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm text-slate-200">{text}</p>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

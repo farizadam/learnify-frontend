@@ -1,63 +1,51 @@
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 dark:bg-black text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* About */}
+    <footer className="border-t border-slate-200/70 bg-slate-950 text-white dark:border-slate-800">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid gap-10 md:grid-cols-4">
           <div>
-            <h3 className="text-xl font-bold mb-4 text-blue-400">Learnify</h3>
-            <p className="text-gray-400">
-              Empowering learners worldwide with quality education and skill development.
+            <h3 className="text-2xl font-semibold">Learnify</h3>
+            <p className="mt-3 text-sm text-slate-400">
+              Premium e-learning experiences for ambitious learners and visionary educators.
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><Link to="/" className="hover:text-blue-400 transition">Home</Link></li>
-              <li><Link to="/courses" className="hover:text-blue-400 transition">Courses</Link></li>
-              <li><Link to="/dashboard" className="hover:text-blue-400 transition">Dashboard</Link></li>
-              <li><Link to="/profile" className="hover:text-blue-400 transition">Profile</Link></li>
+            <p className="text-sm font-semibold text-slate-200">Platform</p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-400">
+              <li><Link to="/" className="transition hover:text-white">Home</Link></li>
+              <li><Link to="/courses" className="transition hover:text-white">Courses</Link></li>
+              <li><Link to="/dashboard" className="transition hover:text-white">Dashboard</Link></li>
+              <li><Link to="/profile" className="transition hover:text-white">Profile</Link></li>
             </ul>
           </div>
 
-          {/* Legal */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-blue-400 transition">About</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition">Terms</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition">Privacy</a></li>
-              <li><a href="#" className="hover:text-blue-400 transition">Contact</a></li>
+            <p className="text-sm font-semibold text-slate-200">Resources</p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-400">
+              <li><a href="#" className="transition hover:text-white">Help Center</a></li>
+              <li><a href="#" className="transition hover:text-white">Community</a></li>
+              <li><a href="#" className="transition hover:text-white">Terms</a></li>
+              <li><a href="#" className="transition hover:text-white">Privacy</a></li>
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact</h4>
-            <ul className="space-y-3 text-gray-400">
-              <li className="flex items-center gap-2">
-                <Mail size={18} />
-                <span>info@learnify.com</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone size={18} />
-                <span>+1 (555) 123-4567</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <MapPin size={18} />
-                <span>San Francisco, CA</span>
-              </li>
+            <p className="text-sm font-semibold text-slate-200">Contact</p>
+            <ul className="mt-4 space-y-3 text-sm text-slate-400">
+              <li className="flex items-center gap-2"><Mail size={16} /> hello@learnify.com</li>
+              <li className="flex items-center gap-2"><Phone size={16} /> +1 (555) 010-8899</li>
+              <li className="flex items-center gap-2"><MapPin size={16} /> San Francisco, CA</li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 Learnify. All rights reserved.</p>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800/80 pt-6 text-xs text-slate-500">
+          <p>&copy; 2026 Learnify. All rights reserved.</p>
+          <p>Built for modern education teams.</p>
         </div>
       </div>
     </footer>

@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { FileText, Download, Loader2, Trophy, Award } from 'lucide-react';
+import { Download, Loader2, Trophy, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AnimatedPage from '../components/motion/AnimatedPage';
+import SectionHeader from '../components/ui/SectionHeader';
+import EmptyState from '../components/ui/EmptyState';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 function getToken() { return localStorage.getItem('token'); }
@@ -176,9 +179,9 @@ function CertCard({ cert, studentName }) {
   };
 
   return (
-    <div className="overflow-hidden transition bg-white shadow-lg dark:bg-gray-800 rounded-2xl hover:shadow-xl">
+    <div className="surface overflow-hidden rounded-3xl transition hover:-translate-y-1">
       {/* Canvas preview */}
-      <div className="p-3 bg-gray-100 dark:bg-gray-900">
+      <div className="bg-slate-100 p-3 dark:bg-slate-950">
         <canvas
           ref={canvasRef}
           width={700}
@@ -190,14 +193,14 @@ function CertCard({ cert, studentName }) {
 
       {/* Details */}
       <div className="p-5">
-        <h3 className="mb-1 text-base font-bold text-gray-900 dark:text-white line-clamp-1">{cert.course}</h3>
-        <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        <h3 className="mb-1 text-base font-semibold text-slate-900 dark:text-white line-clamp-1">{cert.course}</h3>
+        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
           Instructor: {cert.instructor} · {new Date(cert.completionDate).toLocaleDateString()}
         </p>
 
         <button
           onClick={handleDownload}
-          className="flex items-center justify-center w-full gap-2 py-2.5 font-bold text-white transition bg-blue-600 rounded-xl hover:bg-blue-700"
+          className="btn btn-primary btn-md w-full"
         >
           <Download size={18} />
           Download Certificate
@@ -246,48 +249,47 @@ export default function CertificatePage() {
   }, [user]);
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Loader2 size={36} className="text-blue-500 animate-spin" />
-    </div>
+    <AnimatedPage className="min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 size={36} className="text-sky-500 animate-spin" />
+      </div>
+    </AnimatedPage>
   );
 
   return (
-    <div className="min-h-screen py-12 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="p-2.5 bg-yellow-400 rounded-xl">
-            <Award size={24} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Certificates</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {certificates.length} certificate{certificates.length !== 1 ? 's' : ''} earned
-            </p>
-          </div>
-        </div>
+    <AnimatedPage className="min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <SectionHeader
+          title="Certificates"
+          subtitle={`${certificates.length} certificate${certificates.length !== 1 ? 's' : ''} earned`}
+          action={
+            <div className="flex items-center gap-2 rounded-2xl bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-700 dark:bg-amber-500/15 dark:text-amber-200">
+              <Award size={14} /> Verified achievements
+            </div>
+          }
+        />
 
-        {certificates.length === 0 ? (
-          <div className="p-12 text-center bg-white shadow-lg rounded-2xl dark:bg-gray-800">
-            <Trophy size={56} className="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-            <p className="mb-2 text-xl font-semibold text-gray-600 dark:text-gray-400">
-              No certificates yet
-            </p>
-            <p className="mb-6 text-gray-400 dark:text-gray-500">
-              Complete a course and pass the quiz with 80%+ to earn your certificate.
-            </p>
-            <Link to="/courses"
-              className="px-8 py-3 font-bold text-white transition bg-blue-600 rounded-xl hover:bg-blue-700">
-              Browse Courses
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {certificates.map(cert => (
-              <CertCard key={cert.id} cert={cert} studentName={studentName} />
-            ))}
-          </div>
-        )}
+        <div className="mt-10">
+          {certificates.length === 0 ? (
+            <EmptyState
+              icon={Trophy}
+              title="No certificates yet"
+              message="Complete a course and pass the quiz with 80%+ to unlock your certificate."
+              action={
+                <Link to="/courses" className="btn btn-primary btn-md">
+                  Browse courses
+                </Link>
+              }
+            />
+          ) : (
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+              {certificates.map(cert => (
+                <CertCard key={cert.id} cert={cert} studentName={studentName} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 }

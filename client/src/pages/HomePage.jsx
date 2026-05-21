@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 import HeroSection from '../components/HeroSection';
 import CoursesCarousel from '../components/CoursesCarousel';
 import CategoryCard from '../components/CategoryCard';
+import AnimatedPage from '../components/motion/AnimatedPage';
+import SectionHeader from '../components/ui/SectionHeader';
+import Skeleton from '../components/ui/Skeleton';
+import EmptyState from '../components/ui/EmptyState';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 function getToken() { return localStorage.getItem('token'); }
@@ -19,6 +24,7 @@ const CATEGORY_ICONS = {
 export default function HomePage() {
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${getToken()}` };
@@ -42,30 +48,62 @@ export default function HomePage() {
         }));
         setCategories(cats);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <AnimatedPage className="min-h-screen">
       <HeroSection />
 
-      {/* Featured Courses */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-4xl font-bold text-center text-gray-900 dark:text-white">
-            Featured Courses
-          </h2>
-          <CoursesCarousel courses={courses.slice(0, 6)} />
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            title="Featured courses"
+            subtitle="Curated experiences designed for focused mastery."
+            action={(
+              <Link to="/courses" className="btn btn-outline btn-sm">
+                Explore all
+              </Link>
+            )}
+          />
+
+          <div className="mt-8">
+            {loading ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="surface rounded-3xl p-5">
+                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="mt-4 h-4 w-3/4" />
+                    <Skeleton className="mt-2 h-4 w-2/3" />
+                    <Skeleton className="mt-6 h-10 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : courses.length > 0 ? (
+              <CoursesCarousel courses={courses.slice(0, 6)} />
+            ) : (
+              <EmptyState
+                title="No courses yet"
+                message="Your library will appear here once courses are published."
+                action={
+                  <Link to="/courses" className="btn btn-primary btn-md">
+                    Browse catalog
+                  </Link>
+                }
+              />
+            )}
+          </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-20 bg-white dark:bg-gray-900">
-        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-4xl font-bold text-center text-gray-900 dark:text-white">
-            Explore Categories
-          </h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            title="Explore categories"
+            subtitle="Move faster by choosing a focused path."
+          />
+          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map(category => (
               <CategoryCard key={category.id} category={category} />
             ))}
@@ -73,21 +111,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-20 text-white bg-blue-600 dark:bg-blue-900">
-        <div className="px-4 mx-auto text-center max-w-7xl sm:px-6 lg:px-8">
-          <h2 className="mb-6 text-4xl font-bold">Ready to Start Learning?</h2>
-          <p className="mb-8 text-xl text-blue-100">
-            Join thousands of students already learning on Learnify
-          </p>
-          <Link
-            to="/courses"
-            className="inline-block px-8 py-3 text-lg font-bold text-blue-600 transition bg-white rounded-lg hover:bg-gray-100"
-          >
-            Explore All Courses
-          </Link>
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="surface-strong relative overflow-hidden rounded-3xl p-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-pink-500/10" />
+            <div className="relative grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr]">
+              <div>
+                <h2 className="text-3xl font-semibold text-slate-900 dark:text-white">
+                  Build momentum with a learning system your team loves.
+                </h2>
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                  Capture progress, ship course milestones, and certify outcomes with beautiful dashboards.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 md:justify-end">
+                <Link to="/courses" className="btn btn-primary btn-lg">
+                  Start learning <ArrowUpRight size={16} />
+                </Link>
+                <Link to="/dashboard" className="btn btn-secondary btn-lg">
+                  View progress
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-    </div>
+    </AnimatedPage>
   );
 }

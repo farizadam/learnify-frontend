@@ -1,11 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  BookOpen, Users, CheckCircle, Loader2,
-  File, Film, Eye, EyeOff, ChevronDown, ChevronUp,
-  GraduationCap, Play, CheckCircle2, Circle
+  ArrowLeft,
+  BookOpen,
+  CheckCircle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Circle,
+  Eye,
+  EyeOff,
+  File,
+  Film,
+  GraduationCap,
+  Loader2,
+  Play,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import AnimatedPage from '../components/motion/AnimatedPage';
+import ProgressBar from '../components/ProgressBar';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 function getToken() { return localStorage.getItem('token'); }
@@ -87,10 +102,10 @@ function LessonItem({ lesson, isEnrolled, userId }) {
   };
 
   return (
-    <div className={`border rounded-xl overflow-hidden transition
+    <div className={`overflow-hidden rounded-2xl border transition
       ${completed
-        ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10'
-        : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/40'
+        ? 'border-emerald-200/70 bg-emerald-50/60 dark:border-emerald-500/30 dark:bg-emerald-500/10'
+        : 'border-slate-200/60 bg-white/70 dark:border-slate-700/60 dark:bg-slate-900/70'
       }`}>
       <div className="flex items-center gap-3 px-4 py-3">
         {lesson.fileType === 'pdf'
@@ -100,18 +115,18 @@ function LessonItem({ lesson, isEnrolled, userId }) {
             : <BookOpen size={16} className="flex-shrink-0 text-blue-500" />
         }
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate dark:text-gray-200">
+          <p className="text-sm font-semibold text-slate-800 truncate dark:text-slate-100">
             {lesson.title}
           </p>
           {lesson.content && (
-            <p className="text-xs text-gray-400 truncate mt-0.5">{lesson.content}</p>
+            <p className="mt-0.5 truncate text-xs text-slate-400">{lesson.content}</p>
           )}
         </div>
         {lesson.fileType && (
           <span className={`text-xs font-bold px-2 py-0.5 rounded flex-shrink-0
             ${lesson.fileType === 'pdf'
-              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300'
-              : 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300'
+              ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200'
+              : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-200'
             }`}>
             {lesson.fileType.toUpperCase()}
           </span>
@@ -121,10 +136,10 @@ function LessonItem({ lesson, isEnrolled, userId }) {
           <button
             onClick={toggleComplete}
             disabled={completed || loading}
-            className={`flex-shrink-0 p-1.5 rounded-lg transition
+            className={`flex-shrink-0 rounded-2xl p-1.5 transition
               ${completed
-                ? 'text-green-600 dark:text-green-400 cursor-default'
-                : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                ? 'text-emerald-600 dark:text-emerald-300 cursor-default'
+                : 'text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-500'
               }`}
             title={completed ? 'Completed' : 'Mark as complete'}
           >
@@ -152,6 +167,7 @@ function LessonItem({ lesson, isEnrolled, userId }) {
 export default function CoursePage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { push } = useToast();
 
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
@@ -203,8 +219,9 @@ export default function CoursePage() {
         ...prev,
         studentsEnrolled: [...(prev.studentsEnrolled ?? []), user?._id || user?.id],
       }));
+      push('Enrollment confirmed. Your lessons are unlocked.', 'success');
     } catch (e) {
-      alert(e.message);
+      push(e.message || 'Unable to enroll right now.', 'error');
     } finally {
       setEnrolling(false);
     }
@@ -230,138 +247,169 @@ export default function CoursePage() {
   const instructor = course.instructor;
   const totalStudents = course.studentsEnrolled?.length ?? 0;
   const totalLessons = lessons.length;
+  const userId = user?._id || user?.id;
+  const completedLessons = lessons.filter(l =>
+    l.studentsCompleted?.some(s => (s._id || s) === userId)
+  ).length;
+  const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   return (
-    <div className="min-h-screen py-10 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl px-4 mx-auto sm:px-6 lg:px-8">
-
-        {/* Back link */}
-        <Link to="/courses" className="flex items-center gap-2 mb-6 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-          ← Back to courses
+    <AnimatedPage className="min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <Link
+          to="/courses"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+        >
+          <ArrowLeft size={16} /> Back to courses
         </Link>
 
-        {/* Course Header */}
-        <div className="mb-8 overflow-hidden bg-white shadow-lg dark:bg-gray-800 rounded-2xl">
-          {/* Banner */}
-          <div className="flex items-center justify-center h-52 bg-gradient-to-br from-blue-600 to-indigo-700">
-            <GraduationCap size={72} className="text-white opacity-60" />
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="surface overflow-hidden rounded-3xl">
+            <div className="relative flex h-56 items-center justify-center bg-gradient-to-br from-sky-500 via-indigo-500 to-purple-500">
+              <GraduationCap size={72} className="text-white/80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent" />
+            </div>
+
+            <div className="p-8">
+              <div className="flex flex-wrap gap-2">
+                {course.category && (
+                  <span className="badge bg-white/80 text-slate-700">
+                    {course.category}
+                  </span>
+                )}
+                {course.level && (
+                  <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    {course.level}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="mt-4 text-3xl font-semibold text-slate-900 dark:text-white">
+                {course.title}
+              </h1>
+
+              {course.description && (
+                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                  {course.description}
+                </p>
+              )}
+
+              <div className="mt-6 grid gap-4 border-y border-slate-200/60 py-6 dark:border-slate-700/60 sm:grid-cols-2">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-sky-500/10 p-2 text-sky-500">
+                    <Users size={18} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-white">{totalStudents}</p>
+                    <p className="text-xs text-slate-500">Students enrolled</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-indigo-500/10 p-2 text-indigo-500">
+                    <BookOpen size={18} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-white">{totalLessons}</p>
+                    <p className="text-xs text-slate-500">Lessons inside</p>
+                  </div>
+                </div>
+              </div>
+
+              {(isEnrolled || user?.role === 'teacher') && (
+                <div className="mt-6">
+                  <ProgressBar progress={progress} />
+                </div>
+              )}
+
+              {instructor && (
+                <div className="mt-6 flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/70 p-4 dark:border-slate-700/60 dark:bg-slate-900/70">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+                    {instructor.firstName?.[0]}{instructor.lastName?.[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {instructor.firstName} {instructor.lastName}
+                    </p>
+                    <p className="text-xs text-slate-400">Instructor</p>
+                  </div>
+                </div>
+              )}
+
+              {user?.role === 'student' && (
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {isEnrolled ? (
+                    <div className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
+                      <CheckCircle size={14} /> Enrolled
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleEnroll}
+                      disabled={enrolling}
+                      className="btn btn-primary btn-md disabled:opacity-60"
+                    >
+                      {enrolling ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} />}
+                      {enrolling ? 'Enrolling...' : 'Enroll now'}
+                    </button>
+                  )}
+                  {isEnrolled && hasQuiz && (
+                    <Link to={`/course/${id}/quiz`} className="btn btn-secondary btn-md">
+                      Take quiz
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="p-8">
-            {/* Badges */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {course.category && (
-                <span className="px-3 py-1 text-sm font-semibold text-blue-700 rounded-full bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300">
-                  {course.category}
-                </span>
-              )}
-              {course.level && (
-                <span className="px-3 py-1 text-sm font-semibold text-gray-600 capitalize bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">
-                  {course.level}
-                </span>
-              )}
-            </div>
-
-            <h1 className="mb-3 text-3xl font-bold text-gray-900 dark:text-white">
-              {course.title}
-            </h1>
-
-            {course.description && (
-              <p className="mb-6 text-lg text-gray-500 dark:text-gray-400">
-                {course.description}
-              </p>
-            )}
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 py-6 mb-6 border-gray-100 border-y dark:border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20">
-                  <Users size={20} className="text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalStudents}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Students enrolled</p>
-                </div>
+          <div className="surface rounded-3xl p-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Course highlights</h3>
+            <div className="mt-4 space-y-3 text-sm text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-500" />
+                Structured learning path with interactive checkpoints.
               </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-900/20">
-                  <BookOpen size={20} className="text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalLessons}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Lessons</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-500" />
+                Upload-ready lessons with PDF and video support.
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-500" />
+                Certificate-ready assessments once you pass the quiz.
               </div>
             </div>
 
-            {/* Instructor */}
-            {instructor && (
-              <div className="flex items-center gap-3 p-4 mb-8 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                <div className="flex items-center justify-center flex-shrink-0 w-10 h-10 font-bold text-white bg-blue-600 rounded-full">
-                  {instructor.firstName?.[0]}{instructor.lastName?.[0]}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {instructor.firstName} {instructor.lastName}
-                  </p>
-                  <p className="text-xs text-gray-400">Instructor</p>
-                </div>
-              </div>
-            )}
-
-            {/* Enroll Button + Quiz */}
-            {user?.role === 'student' && (
-              <div className="flex flex-wrap gap-3">
-                {isEnrolled ? (
-                  <div className="flex items-center gap-2 px-6 py-3 font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-xl">
-                    <CheckCircle size={20} /> Enrolled
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleEnroll}
-                    disabled={enrolling}
-                    className="flex items-center gap-2 px-8 py-3 font-bold text-white transition bg-blue-600 hover:bg-blue-700 rounded-xl disabled:opacity-60"
-                  >
-                    {enrolling ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} />}
-                    {enrolling ? 'Enrolling…' : 'Enroll Now'}
-                  </button>
-                )}
-                {isEnrolled && hasQuiz && (
-                  <Link
-                    to={`/course/${id}/quiz`}
-                    className="flex items-center gap-2 px-8 py-3 font-bold text-white transition bg-purple-600 hover:bg-purple-700 rounded-xl"
-                  >
-                    📝 Take Quiz
-                  </Link>
-                )}
+            {(isEnrolled || user?.role === 'teacher') && (
+              <div className="mt-6 rounded-2xl border border-slate-200/60 bg-white/70 p-4 dark:border-slate-700/60 dark:bg-slate-900/70">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Your progress</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{progress}%</p>
+                <p className="mt-1 text-xs text-slate-500">{completedLessons} lessons completed</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Lessons Section */}
-        <div className="p-6 bg-white shadow-lg dark:bg-gray-800 rounded-2xl">
+        <div className="mt-8 surface rounded-3xl p-6">
           <div
-            className="flex items-center justify-between mb-4 cursor-pointer"
+            className="flex cursor-pointer items-center justify-between"
             onClick={() => setShowLessons(v => !v)}
           >
-            <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
-              <BookOpen size={20} className="text-blue-500" />
-              Course Curriculum
-              <span className="text-sm font-normal text-gray-400">({totalLessons} lessons)</span>
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-slate-900 dark:text-white">
+              <BookOpen size={20} className="text-sky-500" />
+              Course curriculum
+              <span className="text-sm font-normal text-slate-400">({totalLessons} lessons)</span>
             </h2>
-            {showLessons ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+            {showLessons ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
           </div>
 
           {showLessons && (
             <>
               {totalLessons === 0 ? (
-                <div className="py-10 text-center text-gray-400">
+                <div className="py-10 text-center text-slate-400">
                   <BookOpen size={36} className="mx-auto mb-3 opacity-30" />
                   <p>No lessons yet.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="mt-6 space-y-3">
                   {lessons.map(lesson => (
                     <LessonItem
                       key={lesson._id || lesson.id}
@@ -373,18 +421,15 @@ export default function CoursePage() {
                 </div>
               )}
 
-              {/* Message si pas enrolled */}
               {!isEnrolled && user?.role === 'student' && totalLessons > 0 && (
-                <div className="p-5 mt-6 text-center bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                  <p className="mb-3 font-semibold text-blue-700 dark:text-blue-300">
-                    Enroll to access lesson content and PDFs
-                  </p>
+                <div className="mt-6 rounded-2xl border border-sky-200/60 bg-sky-50 px-6 py-5 text-center text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200">
+                  <p className="mb-3 font-semibold">Enroll to access lesson content and resources.</p>
                   <button
                     onClick={handleEnroll}
                     disabled={enrolling}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition disabled:opacity-60"
+                    className="btn btn-primary btn-md disabled:opacity-60"
                   >
-                    {enrolling ? 'Enrolling…' : 'Enroll Now'}
+                    {enrolling ? 'Enrolling...' : 'Enroll now'}
                   </button>
                 </div>
               )}
@@ -392,6 +437,6 @@ export default function CoursePage() {
           )}
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 }
