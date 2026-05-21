@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, BookOpen, TrendingUp, Loader2 } from 'lucide-react';
+import { BookOpen, Clock, TrendingUp } from 'lucide-react';
 import ProgressBar from '../components/ProgressBar';
 import { useAuth } from '../contexts/AuthContext';
+import AnimatedPage from '../components/motion/AnimatedPage';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import SectionHeader from '../components/ui/SectionHeader';
+import StatCard from '../components/ui/StatCard';
+import Skeleton from '../components/ui/Skeleton';
+import EmptyState from '../components/ui/EmptyState';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 function getToken() { return localStorage.getItem('token'); }
@@ -65,153 +71,132 @@ export default function DashboardPage() {
   const completedLessons = enrolledCourses.reduce((s, c) => s + (c.completed ?? 0), 0);
 
   return (
-    <div className="min-h-screen py-12 bg-gray-50 dark:bg-gray-900">
-      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <h1 className="mb-12 text-4xl font-bold text-gray-900 dark:text-white">
-          Dashboard
-        </h1>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 gap-6 mb-12 md:grid-cols-3">
-          <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Courses Enrolled</p>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                  {loading ? '…' : enrolledCourses.length}
-                </p>
-              </div>
-              <BookOpen size={40} className="text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Lessons Completed</p>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                  {loading ? '…' : `${completedLessons}/${totalLessons}`}
-                </p>
-              </div>
-              <TrendingUp size={40} className="text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Courses Passed</p>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                  {loading ? '…' : enrolledCourses.filter(c => c.progress === 100).length}
-                </p>
-              </div>
-              <Clock size={40} className="text-orange-600 dark:text-orange-400" />
-            </div>
-          </div>
+    <AnimatedPage className="min-h-screen">
+      <DashboardLayout
+        title="Student dashboard"
+        subtitle={`Welcome back${user?.firstName ? `, ${user.firstName}` : ''}. Your learning momentum lives here.`}
+        actions={
+          <Link to="/courses" className="btn btn-primary btn-sm">
+            Browse courses
+          </Link>
+        }
+      >
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatCard
+            icon={BookOpen}
+            label="Courses enrolled"
+            value={loading ? '...' : enrolledCourses.length}
+            tone="sky"
+          />
+          <StatCard
+            icon={TrendingUp}
+            label="Lessons completed"
+            value={loading ? '...' : `${completedLessons}/${totalLessons}`}
+            tone="emerald"
+          />
+          <StatCard
+            icon={Clock}
+            label="Courses passed"
+            value={loading ? '...' : enrolledCourses.filter(c => c.progress === 100).length}
+            tone="amber"
+          />
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center gap-3 py-20 text-gray-400">
-            <Loader2 size={26} className="animate-spin" />
-            <span>Loading your courses…</span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            {/* Enrolled Courses */}
-            <div className="lg:col-span-2">
-              <div className="p-8 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-                <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
-                  My Courses
-                </h2>
+        <div className="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
+          <div className="surface rounded-3xl p-6">
+            <SectionHeader
+              title="My courses"
+              subtitle="Resume where you left off or review completed lessons."
+            />
 
-                {enrolledCourses.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <BookOpen size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                    <p className="mb-4 text-gray-500 dark:text-gray-400">
-                      You haven't enrolled in any courses yet.
-                    </p>
-                    <Link
-                      to="/courses"
-                      className="px-6 py-2 font-bold text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
-                    >
-                      Browse Courses
-                    </Link>
+            {loading ? (
+              <div className="mt-6 space-y-4">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-700/60">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="mt-3 h-2 w-full" />
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    {enrolledCourses.map(course => {
-                      const courseId = course._id || course.id;
-                      const instructorName = course.instructor?.firstName
-                        ? `${course.instructor.firstName} ${course.instructor.lastName}`
-                        : course.instructor?.name || 'Instructor';
-                      return (
-                        <div
-                          key={courseId}
-                          className={`p-6 transition rounded-lg hover:shadow-lg border ${
-                            course.progress === 100
-                              ? 'border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/10'
-                              : 'border-gray-300 dark:border-gray-700'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                  {course.title}
-                                </h3>
-                                {course.progress === 100 && (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                                    ✓ Completed
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                by {instructorName}
-                              </p>
-                            </div>
-                            <span className={`text-lg font-bold ${
-                              course.progress === 100
-                                ? 'text-green-600 dark:text-green-400'
-                                : 'text-blue-600 dark:text-blue-400'
-                            }`}>
-                              {course.progress}%
-                            </span>
-                          </div>
-                          <ProgressBar progress={course.progress} />
-                          <div className="flex items-center justify-between mt-3">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {course.completed} of {course.lessonsData?.length ?? 0} lessons completed
-                            </p>
-                            <Link
-                              to={`/course/${courseId}`}
-                              className={`text-sm font-semibold hover:underline ${
-                                course.progress === 100
-                                  ? 'text-green-600 dark:text-green-400'
-                                  : 'text-blue-600 dark:text-blue-400'
-                              }`}
-                            >
-                              {course.progress === 100 ? 'Review →' : 'Continue →'}
-                            </Link>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                ))}
               </div>
-            </div>
+            ) : enrolledCourses.length === 0 ? (
+              <div className="mt-8">
+                <EmptyState
+                  icon={BookOpen}
+                  title="No enrolled courses yet"
+                  message="Start exploring courses to build your learning plan."
+                  action={
+                    <Link to="/courses" className="btn btn-primary btn-md">
+                      Browse courses
+                    </Link>
+                  }
+                />
+              </div>
+            ) : (
+              <div className="mt-6 space-y-4">
+                {enrolledCourses.map(course => {
+                  const courseId = course._id || course.id;
+                  const instructorName = course.instructor?.firstName
+                    ? `${course.instructor.firstName} ${course.instructor.lastName}`
+                    : course.instructor?.name || 'Instructor';
+                  return (
+                    <div
+                      key={courseId}
+                      className="rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition hover:-translate-y-0.5 dark:border-slate-700/60 dark:bg-slate-900/70"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                              {course.title}
+                            </h3>
+                            {course.progress === 100 && (
+                              <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200">
+                                Completed
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500">by {instructorName}</p>
+                        </div>
+                        <span className="text-sm font-semibold text-sky-500">
+                          {course.progress}%
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <ProgressBar progress={course.progress} />
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                        <span>
+                          {course.completed} of {course.lessonsData?.length ?? 0} lessons completed
+                        </span>
+                        <Link
+                          to={`/course/${courseId}`}
+                          className="font-semibold text-slate-900 hover:text-indigo-500 dark:text-slate-200 dark:hover:text-indigo-300"
+                        >
+                          {course.progress === 100 ? 'Review' : 'Continue'}
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-            {/* Upcoming Lessons */}
-            <div className="p-8 bg-white rounded-lg shadow-lg dark:bg-gray-800">
-              <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
-                Next Lessons
-              </h2>
-
-              {enrolledCourses.length === 0 ? (
-                <p className="text-sm text-gray-400">No upcoming lessons.</p>
+          <div className="surface rounded-3xl p-6">
+            <SectionHeader
+              title="Next lessons"
+              subtitle="Lessons waiting for your next session."
+            />
+            <div className="mt-6 space-y-3">
+              {loading ? (
+                [0, 1, 2].map((item) => (
+                  <Skeleton key={item} className="h-16 w-full" />
+                ))
+              ) : enrolledCourses.length === 0 ? (
+                <p className="text-sm text-slate-500">No upcoming lessons yet.</p>
               ) : (
-                <div className="space-y-4">
-                  {enrolledCourses.flatMap(course =>
+                enrolledCourses
+                  .flatMap(course =>
                     (course.lessonsData ?? [])
                       .filter(l => {
                         const userId = user?._id || user?.id;
@@ -223,35 +208,32 @@ export default function DashboardPage() {
                         courseName: course.title,
                         courseId: course._id || course.id,
                       }))
-                  ).slice(0, 5).map(lesson => (
+                  )
+                  .slice(0, 5)
+                  .map(lesson => (
                     <Link
                       key={lesson._id || lesson.id}
                       to={`/course/${lesson.courseId}`}
-                      className="block p-4 transition border border-gray-300 rounded-lg cursor-pointer dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="flex flex-col gap-1 rounded-2xl border border-slate-200/60 bg-white/70 p-4 text-sm transition hover:-translate-y-0.5 dark:border-slate-700/60 dark:bg-slate-900/70"
                     >
-                      <p className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
+                      <span className="text-xs uppercase tracking-wide text-slate-400">
                         {lesson.courseName}
-                      </p>
-                      <p className="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      </span>
+                      <span className="font-semibold text-slate-900 dark:text-white">
                         {lesson.title}
-                      </p>
+                      </span>
                       {lesson.fileType && (
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded
-                          ${lesson.fileType === 'pdf'
-                            ? 'bg-red-100 text-red-600'
-                            : 'bg-purple-100 text-purple-600'
-                          }`}>
+                        <span className="badge w-fit bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                           {lesson.fileType.toUpperCase()}
                         </span>
                       )}
                     </Link>
-                  ))}
-                </div>
+                  ))
               )}
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </DashboardLayout>
+    </AnimatedPage>
   );
 }

@@ -4,15 +4,19 @@ export default function CategoryCard({ category }) {
   return (
     <Link
       to="/courses"
-      className="block p-6 text-center transition transform bg-white rounded-lg shadow-lg cursor-pointer dark:bg-gray-800 hover:shadow-xl hover:scale-105"
+      className="surface group flex flex-col items-center gap-4 rounded-3xl p-6 text-center transition hover:-translate-y-1"
     >
-      <div className="mb-4 text-5xl">{category.icon}</div>
-      <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
-        {category.name}
-      </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        {category.count} courses
-      </p>
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-3xl shadow-sm dark:bg-slate-900/70">
+        {category.icon}
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+          {category.name}
+        </h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          {category.count} courses
+        </p>
+      </div>
     </Link>
   );
 }

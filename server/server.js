@@ -19,9 +19,26 @@ const teacherRoutes = require('./routes/teacherRoutes');
 
 
 // Middleware
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
+].filter(Boolean);
+
 app.use(cors({
-  origin: "http://localhost:5173", // vite
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+    if (isAllowed) return callback(null, true);
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
 }));
 app.use(express.json());
 
