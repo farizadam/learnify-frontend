@@ -21,8 +21,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import AnimatedPage from '../components/motion/AnimatedPage';
 import ProgressBar from '../components/ProgressBar';
+import { getApiBaseUrl } from '../utils/apiBase';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE = getApiBaseUrl();
 function getToken() { return localStorage.getItem('token'); }
 
 async function apiFetch(path, options = {}) {
