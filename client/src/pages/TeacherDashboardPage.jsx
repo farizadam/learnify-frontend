@@ -9,8 +9,9 @@ import { useToast } from '../contexts/ToastContext';
 import AnimatedPage from '../components/motion/AnimatedPage';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import StatCard from '../components/ui/StatCard';
+import { getApiBaseUrl } from '../utils/apiBase';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE = getApiBaseUrl();
 const MAX_SIZE_MB = 200;
 
 function getToken() { return localStorage.getItem('token'); }
