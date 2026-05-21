@@ -9,11 +9,12 @@ import EmptyState from '../components/ui/EmptyState';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 function getToken() { return localStorage.getItem('token'); }
 
-async function apiFetch(path) {
+async function apiFetch(path, options = {}) {
   const token = getToken();
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-  });
+  const url = `${API_BASE}${path}`;
+  const fetchOptions = { ...options, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers } };
+  console.log('apiFetch ->', url, fetchOptions);
+  const res = await fetch(url, fetchOptions);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }

@@ -1,8 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { login as loginApi, signup as signupApi } from "../services/authService";
+import { safeJson } from "../utils/safeJson";
+import { getApiBaseUrl } from "../utils/apiBase";
 
 const AuthContext = createContext();
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const BASE_URL = getApiBaseUrl();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -16,9 +18,9 @@ export const AuthProvider = ({ children }) => {
     fetch(`${BASE_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(res => {
+      .then(async res => {
         if (!res.ok) throw new Error("Token invalide");
-        return res.json();
+        return safeJson(res);
       })
       .then(data => setUser(data))
       .catch(() => {
